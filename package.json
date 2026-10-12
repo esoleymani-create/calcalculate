@@ -1,0 +1,10 @@
+{
+  "name": "calcalculate",
+  "version": "0.1.0",
+  "description": "Track the calories you burn each day",
+  "private": true,
+  "scripts": {
+    "start": "npx --yes serve .",
+    "test": "node --test test/*.test.js"
+  }
+}

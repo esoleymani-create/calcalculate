@@ -1,0 +1,151 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="theme-color" content="#0f766e">
+  <title>CalCalculate</title>
+  <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+  <header class="app-header">
+    <h1>CalCalculate</h1>
+    <p class="tagline">Daily calories burned</p>
+  </header>
+
+  <main>
+    <!-- Day navigation -->
+    <section class="card day-nav" aria-label="Selected day">
+      <button type="button" id="prev-day" class="icon-btn" aria-label="Previous day">‹</button>
+      <div class="day-label">
+        <input type="date" id="day-picker" aria-label="Pick a day">
+        <span id="day-name"></span>
+      </div>
+      <button type="button" id="next-day" class="icon-btn" aria-label="Next day">›</button>
+    </section>
+
+    <!-- Summary -->
+    <section class="card summary" aria-label="Daily summary">
+      <div class="ring-wrap">
+        <svg class="ring" viewBox="0 0 120 120" aria-hidden="true">
+          <circle class="ring-track" cx="60" cy="60" r="52"></circle>
+          <circle class="ring-fill" id="ring-fill" cx="60" cy="60" r="52"></circle>
+        </svg>
+        <div class="ring-text">
+          <strong id="active-total">0</strong>
+          <span>active kcal</span>
+          <small id="goal-text"></small>
+        </div>
+      </div>
+      <dl class="stats">
+        <div><dt>Resting (BMR)</dt><dd id="bmr-total">—</dd></div>
+        <div><dt>Active</dt><dd id="active-total-2">0</dd></div>
+        <div class="total"><dt>Total burned</dt><dd id="grand-total">—</dd></div>
+      </dl>
+      <p id="profile-hint" class="hint" hidden>
+        Set up your profile below to include resting calories and estimate activity burn.
+      </p>
+    </section>
+
+    <!-- Add activity -->
+    <section class="card" aria-labelledby="add-title">
+      <h2 id="add-title">Log activity</h2>
+      <div class="tabs" role="tablist">
+        <button type="button" role="tab" id="tab-activity" aria-selected="true">From activity</button>
+        <button type="button" role="tab" id="tab-manual" aria-selected="false">Enter calories</button>
+      </div>
+
+      <form id="activity-form" class="form">
+        <label>Activity
+          <select id="activity-select" required></select>
+        </label>
+        <label>Duration (minutes)
+          <input type="number" id="activity-minutes" min="1" max="1440" step="1" required inputmode="numeric">
+        </label>
+        <p class="preview" id="activity-preview" aria-live="polite"></p>
+        <button type="submit" class="primary">Add</button>
+      </form>
+
+      <form id="manual-form" class="form" hidden>
+        <label>Name
+          <input type="text" id="manual-name" maxlength="60" placeholder="e.g. Morning run (from watch)" required>
+        </label>
+        <label>Active calories
+          <input type="number" id="manual-calories" min="1" max="10000" step="1" required inputmode="numeric">
+        </label>
+        <label>Duration (minutes, optional)
+          <input type="number" id="manual-minutes" min="1" max="1440" step="1" inputmode="numeric">
+        </label>
+        <button type="submit" class="primary">Add</button>
+      </form>
+    </section>
+
+    <!-- Entries -->
+    <section class="card" aria-labelledby="entries-title">
+      <h2 id="entries-title">Activities</h2>
+      <ul id="entry-list" class="entries"></ul>
+      <p id="empty-entries" class="hint">Nothing logged for this day yet.</p>
+    </section>
+
+    <!-- Weekly chart -->
+    <section class="card" aria-labelledby="week-title">
+      <h2 id="week-title">Last 7 days</h2>
+      <div id="week-chart" class="week-chart" role="img"></div>
+      <p class="hint" id="week-avg"></p>
+    </section>
+
+    <!-- Profile -->
+    <section class="card" aria-labelledby="profile-title">
+      <h2 id="profile-title">Profile</h2>
+      <form id="profile-form" class="form grid">
+        <fieldset class="units">
+          <legend>Units</legend>
+          <label class="inline"><input type="radio" name="units" value="metric" checked> Metric</label>
+          <label class="inline"><input type="radio" name="units" value="imperial"> Imperial</label>
+        </fieldset>
+        <fieldset class="units">
+          <legend>Sex</legend>
+          <label class="inline"><input type="radio" name="sex" value="male" checked> Male</label>
+          <label class="inline"><input type="radio" name="sex" value="female"> Female</label>
+        </fieldset>
+        <label>Age
+          <input type="number" id="age" min="10" max="120" step="1" required inputmode="numeric">
+        </label>
+        <label><span id="weight-label">Weight (kg)</span>
+          <input type="number" id="weight" min="20" max="700" step="0.1" required inputmode="decimal">
+        </label>
+        <div class="height-metric">
+          <label>Height (cm)
+            <input type="number" id="height-cm" min="100" max="250" step="0.5" inputmode="decimal">
+          </label>
+        </div>
+        <div class="height-imperial" hidden>
+          <label>Height (ft)
+            <input type="number" id="height-ft" min="3" max="8" step="1" inputmode="numeric">
+          </label>
+          <label>(in)
+            <input type="number" id="height-in" min="0" max="11" step="1" inputmode="numeric">
+          </label>
+        </div>
+        <label>Daily active goal (kcal)
+          <input type="number" id="goal" min="0" max="10000" step="10" inputmode="numeric">
+        </label>
+        <button type="submit" class="primary">Save profile</button>
+        <p id="profile-status" class="hint" aria-live="polite"></p>
+      </form>
+    </section>
+
+    <section class="card actions">
+      <button type="button" id="export-csv">Export CSV</button>
+      <button type="button" id="clear-data" class="danger">Delete all data</button>
+    </section>
+  </main>
+
+  <footer class="app-footer">
+    <p>Estimates use the Mifflin–St Jeor equation and MET values. Your data stays in this browser.</p>
+  </footer>
+
+  <script src="calc.js"></script>
+  <script src="app.js"></script>
+</body>
+</html>
