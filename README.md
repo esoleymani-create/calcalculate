@@ -12,6 +12,7 @@ browser (`localStorage`).
   cycling, lifting, HIIT, yoga, …). Calories are estimated from your weight
   and the duration.
 - **Manual entries** for numbers from a fitness watch or a gym machine.
+- **WHOOP import** from the CSV files in a WHOOP data export (see below).
 - **Any day**: go back to earlier days or pick a date to log or review them.
 - **7-day chart** with your daily average. Tap a bar to open that day.
 - Metric or imperial units, light and dark mode, works on a phone screen.
@@ -27,6 +28,24 @@ npm start          # serves the app at http://localhost:3000
 
 To use it on your phone, host the folder on any static host (GitHub Pages,
 Netlify, …) and use "Add to Home Screen".
+
+## Importing from WHOOP
+
+1. In the WHOOP app, go to **More → App Settings → Data Export** and request
+   your data. WHOOP emails you a zip file.
+2. Unzip it, then in CalCalculate choose **Import from WHOOP → Choose CSV
+   files** and select `physiological_cycles.csv` and `workouts.csv`.
+
+- **Daily totals** come from the cycles file. On days with WHOOP data, the
+  total burned is WHOOP's measured figure instead of the BMR estimate.
+- **Workouts** appear in that day's activity list with a WHOOP badge,
+  including their strain.
+- Re-importing a newer export updates days you already have, without
+  duplicating anything. Other files in the export are skipped.
+
+WHOOP names each cycle after the day you wake into, so a cycle that starts
+in the evening counts toward the next day. WHOOP's workout calories are the
+full burn for the workout, not just the extra above resting.
 
 ## How the estimates work
 

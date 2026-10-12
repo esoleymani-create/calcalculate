@@ -1,0 +1,4 @@
+Cycle start time,Cycle end time,Cycle timezone,Recovery score %,Resting heart rate (bpm),Heart rate variability (ms),Skin temp (celsius),Blood oxygen %,Day Strain,Energy burned (cal),Max HR (bpm),Average HR (bpm),Sleep onset,Wake onset,Sleep performance %
+2026-10-09 23:12:40,2026-10-10 22:48:03,UTC-04:00,71,52,68,33.4,96.1,12.4,2410,171,68,2026-10-09 23:12:40,2026-10-10 06:55:12,88
+2026-10-10 22:48:03,2026-10-12 00:31:10,UTC-04:00,45,55,51,33.6,95.8,8.1,2102,142,63,2026-10-10 22:48:03,2026-10-11 07:40:00,74
+2026-10-12 00:31:10,,UTC-04:00,,,,,,4.2,,120,61,2026-10-12 00:31:10,2026-10-12 07:02:44,

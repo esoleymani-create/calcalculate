@@ -38,10 +38,11 @@
         </div>
       </div>
       <dl class="stats">
-        <div><dt>Resting (BMR)</dt><dd id="bmr-total">—</dd></div>
+        <div><dt id="bmr-label">Resting (BMR)</dt><dd id="bmr-total">—</dd></div>
         <div><dt>Active</dt><dd id="active-total-2">0</dd></div>
         <div class="total"><dt>Total burned</dt><dd id="grand-total">—</dd></div>
       </dl>
+      <p id="day-source" class="hint source" hidden></p>
       <p id="profile-hint" class="hint" hidden>
         Set up your profile below to include resting calories and estimate activity burn.
       </p>
@@ -92,6 +93,22 @@
       <h2 id="week-title">Last 7 days</h2>
       <div id="week-chart" class="week-chart" role="img"></div>
       <p class="hint" id="week-avg"></p>
+    </section>
+
+    <!-- WHOOP import -->
+    <section class="card" aria-labelledby="whoop-title">
+      <h2 id="whoop-title">Import from WHOOP</h2>
+      <ol class="steps">
+        <li>In the WHOOP app, go to <strong>More → App Settings → Data Export</strong> and request your data.</li>
+        <li>Unzip the export you receive by email.</li>
+        <li>Choose <code>physiological_cycles.csv</code> and <code>workouts.csv</code> below. You can select both at once.</li>
+      </ol>
+      <label class="file-btn">
+        <input type="file" id="whoop-files" accept=".csv,text/csv" multiple>
+        <span>Choose CSV files</span>
+      </label>
+      <p id="whoop-status" class="hint" aria-live="polite"></p>
+      <p class="hint">Days with WHOOP data use WHOOP's total burn instead of the estimate. Importing the same files again won't create duplicates.</p>
     </section>
 
     <!-- Profile -->
@@ -146,6 +163,7 @@
   </footer>
 
   <script src="calc.js"></script>
+  <script src="whoop.js"></script>
   <script src="app.js"></script>
 </body>
 </html>

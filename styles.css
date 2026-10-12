@@ -222,3 +222,33 @@ button:focus-visible, input:focus-visible, select:focus-visible {
   .stats { width: 100%; }
   .form.grid { grid-template-columns: 1fr; }
 }
+
+/* WHOOP import */
+.steps { margin: 0 0 12px; padding-left: 1.2em; color: var(--muted); font-size: 0.9rem; display: grid; gap: 4px; }
+.steps code { font-size: 0.85em; }
+.file-btn { display: inline-block; position: relative; }
+.file-btn input { position: absolute; inset: 0; opacity: 0; cursor: pointer; }
+.file-btn span {
+  display: inline-block;
+  padding: 10px 16px;
+  border-radius: 10px;
+  background: var(--accent);
+  color: #fff;
+  font-weight: 600;
+}
+.file-btn input:focus-visible + span { outline: 2px solid var(--accent); outline-offset: 2px; }
+@media (prefers-color-scheme: dark) {
+  .file-btn span { color: #042f2e; }
+}
+.source { color: var(--accent); }
+.badge {
+  display: inline-block;
+  margin-left: 6px;
+  padding: 0 6px;
+  border-radius: 6px;
+  background: var(--accent-soft);
+  color: var(--accent);
+  font-size: 0.75rem;
+  font-weight: 600;
+  vertical-align: middle;
+}

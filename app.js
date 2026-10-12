@@ -12,12 +12,16 @@
       const raw = localStorage.getItem(STORAGE_KEY);
       if (raw) {
         const parsed = JSON.parse(raw);
-        return { profile: parsed.profile || null, entries: parsed.entries || {} };
+        return {
+          profile: parsed.profile || null,
+          entries: parsed.entries || {},
+          whoopDays: parsed.whoopDays || {},
+        };
       }
     } catch (err) {
       console.warn('Could not read saved data', err);
     }
-    return { profile: null, entries: {} };
+    return { profile: null, entries: {}, whoopDays: {} };
   }
 
   function saveState() {
@@ -78,15 +82,30 @@
   function renderSummary() {
     const active = Calc.sumCalories(entriesFor(selectedDay));
     const profile = state.profile;
-    const resting = profile ? Calc.bmr(profile) : 0;
     const goal = profile && profile.goal > 0 ? profile.goal : 0;
+    const whoopDay = state.whoopDays[selectedDay];
 
     $('active-total').textContent = fmt(active);
     $('active-total-2').textContent = fmt(active);
-    $('bmr-total').textContent = resting ? fmt(resting) : '—';
-    $('grand-total').textContent = resting ? fmt(resting + active) : fmt(active);
     $('goal-text').textContent = goal ? `of ${fmt(goal)} goal` : '';
-    $('profile-hint').hidden = Boolean(profile);
+
+    if (whoopDay) {
+      // WHOOP measures the whole day, workouts included.
+      $('bmr-label').textContent = 'Rest of day';
+      $('bmr-total').textContent = fmt(Math.max(whoopDay.totalKcal - active, 0));
+      $('grand-total').textContent = fmt(whoopDay.totalKcal);
+      const strain = whoopDay.strain != null ? ` · Day strain ${whoopDay.strain.toFixed(1)}` : '';
+      $('day-source').textContent = `Total from WHOOP${strain}`;
+      $('day-source').hidden = false;
+      $('profile-hint').hidden = true;
+    } else {
+      const resting = profile ? Calc.bmr(profile) : 0;
+      $('bmr-label').textContent = 'Resting (BMR)';
+      $('bmr-total').textContent = resting ? fmt(resting) : '—';
+      $('grand-total').textContent = fmt(resting + active);
+      $('day-source').hidden = true;
+      $('profile-hint').hidden = Boolean(profile);
+    }
 
     const progress = goal ? Math.min(active / goal, 1) : active > 0 ? 1 : 0;
     const ring = $('ring-fill');
@@ -107,9 +126,19 @@
       const name = document.createElement('div');
       name.className = 'name';
       name.textContent = entry.name;
+      if (entry.source === 'whoop') {
+        const badge = document.createElement('span');
+        badge.className = 'badge';
+        badge.textContent = 'WHOOP';
+        name.append(badge);
+      }
       const meta = document.createElement('div');
       meta.className = 'meta';
-      meta.textContent = entry.minutes ? `${entry.minutes} min` : 'Manual entry';
+      const parts = [];
+      if (entry.minutes) parts.push(`${entry.minutes} min`);
+      if (entry.strain != null) parts.push(`Strain ${entry.strain.toFixed(1)}`);
+      if (!parts.length) parts.push('Manual entry');
+      meta.textContent = parts.join(' · ');
       info.append(name, meta);
 
       const kcal = document.createElement('span');
@@ -350,6 +379,65 @@
     }
   });
 
+  // ---- WHOOP import ------------------------------------------------------
+
+  function importWhoop(results) {
+    let days = 0;
+    let workouts = 0;
+    for (const result of results) {
+      for (const cycle of result.cycles) {
+        state.whoopDays[cycle.date] = { totalKcal: cycle.totalKcal, strain: cycle.strain };
+        days++;
+      }
+      for (const w of result.workouts) {
+        // Replace an earlier import of the same workout instead of duplicating it.
+        const list = (state.entries[w.date] || []).filter((e) => e.id !== w.id);
+        list.push({
+          id: w.id,
+          source: 'whoop',
+          name: w.name,
+          minutes: w.minutes,
+          calories: w.calories,
+          strain: w.strain,
+        });
+        state.entries[w.date] = list;
+        workouts++;
+      }
+    }
+    saveState();
+    return { days, workouts };
+  }
+
+  $('whoop-files').addEventListener('change', async (event) => {
+    const files = [...event.target.files];
+    if (!files.length) return;
+    const status = $('whoop-status');
+    status.textContent = 'Importing…';
+
+    const results = [];
+    const skipped = [];
+    for (const file of files) {
+      try {
+        const result = Whoop.parseExport(await file.text());
+        if (result.kind === 'unknown') skipped.push(file.name);
+        else results.push(result);
+      } catch (err) {
+        console.warn('Could not read', file.name, err);
+        skipped.push(file.name);
+      }
+    }
+
+    const { days, workouts } = importWhoop(results);
+    const plural = (n, word) => `${n} ${word}${n === 1 ? '' : 's'}`;
+    let message = `Imported ${plural(days, 'day')} of totals and ${plural(workouts, 'workout')}.`;
+    if (skipped.length) {
+      message += ` Skipped ${skipped.join(', ')} (not a WHOOP cycles or workouts file).`;
+    }
+    status.textContent = message;
+    event.target.value = '';
+    render();
+  });
+
   // ---- Export / reset ----------------------------------------------------
 
   function csvCell(value) {
@@ -358,9 +446,11 @@
   }
 
   $('export-csv').addEventListener('click', () => {
-    const rows = [['date', 'activity', 'minutes', 'active_kcal']];
+    const rows = [['date', 'activity', 'minutes', 'active_kcal', 'source']];
     for (const day of Object.keys(state.entries).sort()) {
-      for (const e of state.entries[day]) rows.push([day, e.name, e.minutes || '', e.calories]);
+      for (const e of state.entries[day]) {
+        rows.push([day, e.name, e.minutes || '', e.calories, e.source || 'manual']);
+      }
     }
     const csv = rows.map((r) => r.map(csvCell).join(',')).join('\n');
     const url = URL.createObjectURL(new Blob([csv], { type: 'text/csv' }));
@@ -375,9 +465,11 @@
     if (!confirm('Delete your profile and all logged activities? This cannot be undone.')) return;
     state.profile = null;
     state.entries = {};
+    state.whoopDays = {};
     saveState();
     $('profile-form').reset();
     $('profile-status').textContent = '';
+    $('whoop-status').textContent = '';
     fillProfileForm();
     render();
   });
